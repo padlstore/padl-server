@@ -18,5 +18,5 @@ Password: testing
 
 ## Resources Used
 
-* Using Firebase to query data on demand (rather than real time): [https://howtofirebase.com/save-and-query-firebase-data-ed73fb8c6e3a]
+* Using Firebase to query data on demand (rather than real time): https://howtofirebase.com/save-and-query-firebase-data-ed73fb8c6e3a
   * `ref.once("value", (snap) => {})`
