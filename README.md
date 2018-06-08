@@ -29,14 +29,14 @@ Password: testing
 ## API Reference
 
 
-* `/users/`
+* `/users`
   * Type: `GET`
   * Requires Authentication: `true`
   * Modifies database: `false`
   * Relevant database keys: `/users/`
   * Gets user information for all users in the Firebase `users` dictionary.
 
-* `/users/:user_id/`
+* `/users/:user_id`
   * Type: `GET`
   * Requires Authentication: `true`
   * Modifies database: `false`

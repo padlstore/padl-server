@@ -61,6 +61,8 @@ router.post('/:user_id/edit_profile_picture', function(req, res, next) {
     next(createError(500, "Couldn't update user profile picture: empty 'propic' argument"));
   }
 
+  // handles the actual updating of the profile picture; needed to prevent
+  // nesting of callbacks
   var update_propic = function (userRef) {
     userRef.update({
       'propic': new_propic,
@@ -75,9 +77,11 @@ router.post('/:user_id/edit_profile_picture', function(req, res, next) {
   }
 
   user.once('value').then((snap) => {
+    // Verify that the user exists
     if (snap.val() === null)
       throw new Error("User '" + user_id + "'  missing in database, can't update profile picture");
 
+    // Update the user profile picture synchronously
     update_propic(user);
   }).catch((err) => {
     console.log(err);
