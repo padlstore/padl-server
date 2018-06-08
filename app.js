@@ -4,6 +4,7 @@ var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 
+var newAccountRouter = require('./routes/newaccount');
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 var offersRouter = require('./routes/offers');
@@ -21,6 +22,14 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
+
+/* Routes that DO NOT require authentication */
+app.use('/create', newAccountRouter);
+
+
+
+
+/* Authentication middleware */
 app.use(function(req, res, next) {
   let token = req.body.token == undefined? "" : req.body.token;
 
@@ -30,24 +39,26 @@ app.use(function(req, res, next) {
     if (req.app.get('env') === 'development') {
       next();
     } else {
-      res.locals.message = 'Permission denied';
-      res.locals.error = req.app.get('env') === 'development' ? err : {};
-      res.status(403);
-      res.render('error');
+      next(createError(403, "Permission denied"));
     }
   });
 });
 
+/* Routes that require authentication */
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
 app.use('/offers', offersRouter)
 
-// catch 404 and forward to error handler
+
+
+
+
+/* Catch 404s and forward to error handler */
 app.use(function(req, res, next) {
   next(createError(404));
 });
 
-// error handler
+/* Error handler */
 app.use(function(err, req, res, next) {
   // set locals, only providing error in development
   res.locals.message = err.message;
