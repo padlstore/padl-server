@@ -1,3 +1,9 @@
+/*
+ *  offers.js
+ *  ---------
+ *  Handles all routes regarding viewing, creating, and modifying offers.
+ */
+
 var express = require('express');
 var router = express.Router();
 

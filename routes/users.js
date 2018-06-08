@@ -16,9 +16,11 @@ var users = db.ref('users');
 /* GET request for all users */
 router.get('/', function(req, res, next) {
   users.once('value').then((snap) => {
+    // Verify that the 'users' dictionary exists
     if (snap.val() === null)
       throw new Error("'Users' missing in database");
 
+    // Send information about the user
     res.send(snap.val());
   }).catch((err) => {
     console.log(err);
@@ -31,15 +33,24 @@ router.get('/:user_id', function(req, res, next) {
   let user_id = req.params.user_id;
   let user = users.child(user_id);
 
-  user.once('value').then((snap) => {
+  var firebase_auth_promise = admin.auth().getUser(user_id)
+  var firebase_db_promise = user.once('value')
+
+  Promise.all([firebase_auth_promise, firebase_db_promise]).then((values) => {
+    let [record, snap] = values
+
+    // Verify that the user exists in Firebase DB
     if (snap.val() === null)
       throw new Error("User '" + user_id + "'  missing in database");
 
+    // Send information about the user
     res.send(snap.val());
+
   }).catch((err) => {
     console.log(err);
     next(createError(500, "Couldn't get user info: " + err.message));
-  });
+  })
+
 });
 
 
@@ -49,7 +60,7 @@ router.get('/:user_id', function(req, res, next) {
  *********************
  */
 
-/* PUT request to edit a user's profile picture */
+/* POST request to edit a user's profile picture */
 router.post('/:user_id/edit_profile_picture', function(req, res, next) {
   let user_id = req.params.user_id;
   let user = users.child(user_id);
@@ -89,6 +100,7 @@ router.post('/:user_id/edit_profile_picture', function(req, res, next) {
   });
 
 });
+
 
 
 

@@ -28,12 +28,25 @@ Password: testing
 
 ## API Reference
 
+### `routes/newaccount.js`
+* `/newaccount`
+  * Type: `POST`
+  * Body parameters:
+    * `email` The user's email address that they want to use to access their account.
+    * `password` The user's password that they want to use to authenticate.
+    * `displayName` The user's name that they want other users to see.
+  * Requires Authentication: `false`
+  * Modifies database: `true`
+  * Relevant database keys: `/users`
+  * Creates a new user with the specified body parameters and stores the user in both Firebase Authentication
 
+
+### `routes/users.js`
 * `/users`
   * Type: `GET`
   * Requires Authentication: `true`
   * Modifies database: `false`
-  * Relevant database keys: `/users/`
+  * Relevant database keys: `/users`
   * Gets user information for all users in the Firebase `users` dictionary.
 
 * `/users/:user_id`
@@ -49,3 +62,5 @@ Password: testing
   * Modifies database: `true`
   * Relevant database keys: `/users/(user_id)/propic`
   * Updates the `propic` attribute of a user in the Firebase `users` dictionary, at `users/(user_id)`
+
+### `routes/offers.js`
