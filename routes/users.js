@@ -4,18 +4,23 @@ var router = express.Router();
 var admin = require('./auth')
 
 var db = admin.database()
-var root = admin.database().ref()
-var test = admin.database().ref('testing')
+var users = db.ref("users")
 
 /* GET users listing. */
 router.get('/all', function(req, res, next) {
 
-  test.once('value').then((snap) => {
+  // TODO: make sure the user requesting info is authenticated
+
+  users.once('value').then((snap) => {
     res.send(snap.val());
   }).catch((err) => {
     console.log(err);
-  })
+  });
 
+});
+
+router.get('/create', function(req, res, next) {
+  res.send('user created');
 });
 
 module.exports = router;
