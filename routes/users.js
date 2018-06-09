@@ -62,7 +62,6 @@ router.get('/:user_id', function(req, res, next) {
 
 });
 
-
 /*
  *********************
  *** POST requests ***

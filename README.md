@@ -137,3 +137,14 @@ Password: testing
   * Modifies database: `true`
   * Relevant database keys: `/users`, `Firebase Auth`
   * Creates a new user account.
+
+
+## Implementation Details
+
+### Creating an account (Client Side)
+* Make a call to the server API to create an account
+* Then automatically call the sign in function on the client side
+
+### Signing In (Client Side)
+* `firebase.auth().signIn(withEmail email: String, password: String, completion:)`
+  * Afterward, check if the user has emailVerified; if not -- send an email verification and don't continue
