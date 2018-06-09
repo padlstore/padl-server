@@ -2,17 +2,18 @@
  * newaccount.js
  * -------------
  * Handles the creation of new accounts.
- * 
+ *
  */
 
 var createError = require('http-errors');
 var express = require('express');
 var router = express.Router();
 
-var admin = require('./auth')
+var admin = require('./auth');
+var utils = require('./utils');
 
-var db = admin.database()
-var users = db.ref('users')
+var db = admin.database();
+var users = db.ref('users');
 
 /* POST request to create a new account. */
 router.post('/', function(req, res, next) {
@@ -31,39 +32,10 @@ router.post('/', function(req, res, next) {
 
 
   // Check that all the proposed edits are "good", i.e. non empty and formatted correctly
-  // isString test
-  let isString = function(obj) {
-    return (Object.prototype.toString.call(obj) === '[object String]');
-  }
-
-  // Email validation
-  let testEmail = function(addr) {
-    let re = /[^\s@]+@[^\s@]+\.[^\s@]+/;
-    return isString(addr) && re.test(addr);
-  }
-
-  let testPassword = function(pwd) {
-    return isString(pwd) && pwd.length > 6;
-  }
-
-  let testDisplayName = function(name) {
-    return isString(name) && name.length > 3;
-  }
-
-  let testLocation = function(loc) {
-    // TODO: Replace hard coded locations with something more flexible
-    // TODO: Add locations based on school
-    let validLocations = ['Simmons Hall', 'Maseeh Hall',
-                          'McCormick Hall', 'Burton Conner',
-                          'Random Hall', 'Next House',
-                          'New House', 'Martin Trust Center'];
-    return isString(loc) && validLocations.includes(loc);
-  }
-
-  valid = (testEmail(email) &&
-           testPassword(password) &&
-           testDisplayName(displayName) &&
-           testLocation(location));
+  valid = (utils.isValidEmail(email) &&
+           utils.isValidPassword(password) &&
+           utils.isValidDisplayName(displayName) &&
+           utils.isValidLocation(location));
 
   if (!valid) {
     next(createError(400, "Invalid input provided."));

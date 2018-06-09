@@ -94,8 +94,7 @@ router.post('/:user_id/edit_profile', function(req, res, next) {
     return;
   }
 
-  const fields = [
-    'email',
+  const fields = [ // don't let users change their email
     'password',
     'displayName',
     'propic',
@@ -104,9 +103,17 @@ router.post('/:user_id/edit_profile', function(req, res, next) {
     'location',
   ];
 
-  // TODO: validate input
+  // Validate input
   var valid_format = function(key, value) {
-    return true;
+    switch (key) {
+      case 'password':         return utils.isValidPassword(value);
+      case 'displayName':      return utils.isValidDisplayName(value);
+      case 'propic':           return utils.isString(value);
+      case 'isServiceAccount': return utils.isBoolean(value);
+      case 'school':           return utils.isValidSchool(value);
+      case 'location':         return utils.isValidLocation(value);
+      default:                 return false;
+    }
   }
 
   // Check that all the proposed edits are "good", i.e. non empty and formatted correctly
