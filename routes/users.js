@@ -23,8 +23,8 @@ router.get('/', function(req, res, next) {
     // Send information about the user
     res.send(snap.val());
   }).catch((err) => {
-    console.log(err);
     next(createError(500, "Couldn't get all users: " + err.message));
+    return;
   });
 });
 
@@ -48,8 +48,8 @@ router.get('/:user_id', function(req, res, next) {
     res.send(snap.val());
 
   }).catch((err) => {
-    console.log(err);
     next(createError(500, "Couldn't get user info: " + err.message));
+    return;
   })
 
 });
@@ -63,15 +63,21 @@ router.get('/:user_id', function(req, res, next) {
 
 /* POST request to edit a user's profile */
 router.post('/:user_id/edit_profile', function(req, res, next) {
-  let user_id = req.params.user_id;
-  let user = users.child(user_id);
+  let uid = req.params.user_id;
+  let user = users.child(uid);
   let edits = req.body.edits;
 
-  if (edits === null)
-    throw new Error("Edits are null");
+  // Check that user supplied edits
+  if (edits == null)
+    next(createError(400, "Edits are null"));
 
-  // DEBUG
-  console.log(edits);
+  // Convert edits to JSON
+  try {
+    edits = JSON.parse(edits);
+  } catch (e) {
+    next(createError(400, "Malformed request: Edits not in JSON format"));
+    return;
+  }
 
   const fields = [
     'email',
@@ -81,42 +87,58 @@ router.post('/:user_id/edit_profile', function(req, res, next) {
     'isServiceAccount',
     'school',
     'location',
-  ]
+  ];
 
+  // TODO: validate input
   var valid_format = function(key, value) {
     return true;
   }
 
   // Check that all the proposed edits are "good", i.e. non empty and formatted correctly
-  for (var field in fields) {
-    if (edits[field] !== null && valid_format(field, edits[field])) {
-      throw new Error("Edit error: Bad format for '" + key + "'");
+  for (const field of fields) {
+    if (edits[field] !== undefined && !valid_format(field, edits[field])) {
+      next(createError(400, "Edit error: Bad format for '" + field + "'"));
+      return;
     }
   }
 
-  var firebase_auth_promise = admin.auth().getUser(user_id);
+  var firebase_auth_promise = admin.auth().getUser(uid);
   var firebase_db_promise = user.once('value');
 
   Promise.all([firebase_auth_promise, firebase_db_promise]).then((values) => {
     let [record, snap] = values;
 
     // Verify that the user exists in Firebase DB
-    if (snap.val() === null)
-      throw new Error("User '" + user_id + "'  missing in database");
+    if (snap.val() === null) {
+      next(createError(500, "User '" + user_id + "'  missing in database"));
+      return;
+    }
 
+    // Update on Firebase Auth
+    admin.auth().updateUser(uid, edits).then((userRecord) => {
+      console.log('Updated user info in Firebase Auth: ' + userRecord.toJSON());
+    }).catch((err) => {
+      next(createError(500, "Couldn't update user in Firebase Auth:" + err.message));
+      return;
+    })
+
+    // Update custom fields in Firebase Database
     user.update(edits, (err) => {
       if (err) {
         console.log(err);
         next(createError(500, "Couldn't update user info: " + err));
+        return;
       } else {
+        console.log('Updated user info in Firebase Database.');
         res.send('User info updated successfully.');
       }
     });
 
   }).catch((err) => {
-    console.log(err);
-    next(createError(500, "Couldn't get user info (edit_profile_picture): " + err.message));
+    next(createError(500, "User doesn't exist: " + err.message));
+    return;
   });
+
 });
 
 
