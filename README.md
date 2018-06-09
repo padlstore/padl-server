@@ -62,7 +62,7 @@ Password: testing
   * `location`
   * `isSold`
 
-### Rating
+#### Rating
 * Fields
   * `ratingId`
   * `score`
@@ -71,7 +71,7 @@ Password: testing
   * `title`
   * `comment`
 
-### Wish
+#### Wish
 * Fields
   * `wishId`
 

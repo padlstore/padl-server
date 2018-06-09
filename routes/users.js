@@ -18,10 +18,12 @@ router.get('/', function(req, res, next) {
   users.once('value').then((snap) => {
     // Verify that the 'users' dictionary exists
     if (snap.val() === null)
-      throw new Error("'Users' missing in database");
+      throw new Error("'Users' table/key missing in database");
 
     // Send information about the user
-    res.send(snap.val());
+    let usersInfo = snap.val();
+    res.send(usersInfo);
+
   }).catch((err) => {
     next(createError(500, "Couldn't get all users: " + err.message));
     return;

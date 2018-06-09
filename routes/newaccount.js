@@ -8,14 +8,14 @@ var db = admin.database()
 var users = db.ref('users')
 
 /* POST request to create a new account. */
-router.get('/', function(req, res, next) {
+router.post('/', function(req, res, next) {
   let email = req.body.email;
   let emailVerified = false;
   let disabled = false;
   let password = req.body.password;
   let displayName = req.body.displayName;
   let propic = "https://s3.amazonaws.com/padl.storage1/profile_pictures/default.jpg";
-  let isServiceAccount = req.body.isServiceAccount;
+  let isServiceAccount = false;
   let ratings = {"sentinel": ""};
   let school = "MIT";
   let location = req.body.location;
@@ -60,8 +60,7 @@ router.get('/', function(req, res, next) {
     return;
   });
 
-  console.log("Creating new account with account details: ");
-  console.log(accountDetails);
+  console.log("Creating new account with email: " + email);
 });
 
 module.exports = router;

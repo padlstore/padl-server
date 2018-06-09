@@ -24,7 +24,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 
 /* Routes that DO NOT require authentication */
-app.use('/create', newAccountRouter);
+app.use('/newaccount', newAccountRouter);
 
 
 
