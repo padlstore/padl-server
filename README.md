@@ -93,6 +93,7 @@ Password: testing
 #### `routes/users.js`
 * `/users`
   * Type: `GET`
+  * Body parameters: None
   * Requires Authentication: `true`
   * Modifies database: `false`
   * Relevant database keys: `/users`
@@ -100,16 +101,39 @@ Password: testing
 
 * `/users/:user_id`
   * Type: `GET`
+  * Body parameters: None
   * Requires Authentication: `true`
   * Modifies database: `false`
   * Relevant database keys: `/users/(user_id)`
   * Gets user information for *specific* user in the Firebase `users` dictionary, at `users/(user_id)`.
 
-* `/users/:user_id/edit_profile_picture`
+* `/users/:user_id/edit_profile`
   * Type: `POST`
+  * Body parameters:
+    * `edits`: A JSON string that contains the desired edits to be made. Valid fields in the JSON dictionary are
+      * `email`
+      * `password`
+      * `displayName`
+      * `propic`
+      * `isServiceAccount`
+      * `school`
+      * `location`
   * Requires Authentication: `true`
   * Modifies database: `true`
-  * Relevant database keys: `/users/(user_id)/propic`
-  * Updates the `propic` attribute of a user in the Firebase `users` dictionary, at `users/(user_id)`
+  * Relevant database keys: `/users/(user_id)`
+  * Updates the various attributes of a user in the Firebase `users` dictionary, at `users/(user_id)`
 
 #### `routes/offers.js`
+
+#### `routes/newaccount.js`
+* `/newaccount`
+  * Type: `POST`
+  * Body parameters:
+    * `email`
+    * `password`
+    * `displayName`
+    * `location`
+  * Requires Authentication: `false`
+  * Modifies database: `true`
+  * Relevant database keys: `/users`, `Firebase Auth`
+  * Creates a new user account.

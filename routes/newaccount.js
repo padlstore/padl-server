@@ -25,6 +25,7 @@ router.post('/', function(req, res, next) {
 
   // Check that all the proposed edits are "good", i.e. non empty and formatted correctly
   // TODO: Input Validation checks
+  
 
 
   // Create the user settings that are passed into Firebase Auth (createUser)
