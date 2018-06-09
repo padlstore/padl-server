@@ -1,3 +1,11 @@
+/*
+ * users.js
+ * --------
+ * Handles the viewing and modification of user profile data.
+ * All the routes in this file require authentication, handled by middleware.
+ *
+ */
+
 var createError = require('http-errors');
 var express = require('express');
 var router = express.Router();

@@ -34,9 +34,17 @@ app.use(function(req, res, next) {
   let token = req.body.token == null? "" : req.body.token;
 
   admin.auth().verifyIdToken(token).then((decoded) => {
+    req.auth = {
+      "userToken": decoded,
+      "uid": decoded.uid
+    };
     next();
   }).catch((err) => {
     if (req.app.get('env') === 'development') {
+      req.auth = {
+        "userToken": "DEVELOPMENT",
+        "uid": "4bQi9p22VDaTFoR0ZnKSI7Oo8ie2" // padl-test-account1@mit.edu
+      };
       next();
     } else {
       next(createError(403, "Permission denied"));

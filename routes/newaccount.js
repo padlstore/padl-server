@@ -1,3 +1,10 @@
+/*
+ * newaccount.js
+ * -------------
+ * Handles the creation of new accounts.
+ * 
+ */
+
 var createError = require('http-errors');
 var express = require('express');
 var router = express.Router();
