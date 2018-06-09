@@ -61,8 +61,8 @@ router.get('/:user_id', function(req, res, next) {
  *********************
  */
 
-/* POST request to edit a user's profile picture */
-router.post('/:user_id/edit_profile_picture', function(req, res, next) {
+/* POST request to edit a user's profile */
+router.post('/:user_id/edit_profile', function(req, res, next) {
   let user_id = req.params.user_id;
   let user = users.child(user_id);
   let edits = req.body.edits;
@@ -79,11 +79,8 @@ router.post('/:user_id/edit_profile_picture', function(req, res, next) {
     'displayName',
     'propic',
     'isServiceAccount',
-    'ratings',
     'school',
     'location',
-    'offers',
-    'wishlist',
   ]
 
   var valid_format = function(key, value) {

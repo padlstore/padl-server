@@ -29,19 +29,24 @@ Password: testing
 ## API Reference
 
 ### Main Keys ("Tables")
+
+#### Legend
+- `*` Builtin
+- `+` Editable via a single API call.
+
 #### User
 * Fields
-  * `email*`: The email that the user uses to login. Handled by Firebase Auth.
+  * `email*+`: The email that the user uses to login. Handled by Firebase Auth.
   * `emailVerified*`: Handled by Firebase Auth.
   * `phoneNumber*`: The user's phone number. Unused.
-  * `password*`: The user's password.
-  * `displayName*`: The display name for the user.
+  * `password*+`: The user's password.
+  * `displayName*+`: The display name for the user.
   * `photoURL*`: Photo URL for the user. Unused. **Use `propic` instead**.
-  * `propic`: URL for the user's profile picture.
-  * `isServiceAccount`: Boolean for whether or not an account is a service account.
+  * `propic+`: URL for the user's profile picture.
+  * `isServiceAccount+`: Boolean for whether or not an account is a service account.
   * `ratings`: List of ratings for the user.
-  * `school`: The school that the user attends.
-  * `location`: Where the user is located, such as dorm or FSILG.
+  * `school+`: The school that the user attends.
+  * `location+`: Where the user is located, such as dorm or FSILG.
   * `offers`: List of offers the user has posted.
   * `wishlist`: List of wishes the user has.
 
