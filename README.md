@@ -50,6 +50,7 @@ Password: testing
   * `location+`: Where the user is located, such as dorm or FSILG.
   * `offers`: List of offers the user has posted.
   * `wishes`: List of wishes the user has.
+  * `dateJoined`: Date that the user joined Padl.
 
 #### Offer
 * Fields
@@ -61,6 +62,7 @@ Password: testing
   * `seller`
   * `location`
   * `isSold`
+  * `dateAdded`
 
 #### Rating
 * Fields
@@ -70,10 +72,12 @@ Password: testing
   * `recipient`
   * `title`
   * `comment`
+  * `dateAdded`
 
 #### Wish
 * Fields
   * `wishId`
+  * `dateAdded`
 
 ### Routes
 
@@ -89,7 +93,6 @@ Password: testing
   * Modifies database: `true`
   * Relevant database keys: `/users`
   * Creates a new user with the specified body parameters and stores the user in both Firebase Authentication
-
 
 #### `routes/users.js`
 * `/users`
@@ -132,7 +135,7 @@ Password: testing
 * `/offers/:offer_id`
   * Type: `GET`
   * Body parameters: None
-  
+
 * `/offers/new`
   * Type: `POST`
   * Body parameters:
@@ -144,6 +147,7 @@ Password: testing
   * Modifies database: `true`
   * Relevant database keys: `/offers/`
   * Creates a new offer.
+    * `200`
 
 * `/offers/:offer_id/edit`
   * Type: `POST`
@@ -157,6 +161,8 @@ Password: testing
   * Modifies database: `true`
   * Relevant database keys: `/offers/(offer_id)`
   * Changes the entries for the relevant offer.
+  * Returns:
+    * `200`
 
 #### `routes/newaccount.js`
 * `/newaccount`
@@ -170,6 +176,8 @@ Password: testing
   * Modifies database: `true`
   * Relevant database keys: `/users`, `Firebase Auth`
   * Creates a new user account.
+  * Returns:
+    * `200`
 
 
 ## Implementation Details
