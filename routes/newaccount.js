@@ -24,9 +24,44 @@ router.post('/', function(req, res, next) {
 
 
   // Check that all the proposed edits are "good", i.e. non empty and formatted correctly
-  // TODO: Input Validation checks
-  
+  // isString test
+  let isString = function(obj) {
+    return (Object.prototype.toString.call(obj) === '[object String]');
+  }
 
+  // Email validation
+  let testEmail = function(addr) {
+    let re = /[^\s@]+@[^\s@]+\.[^\s@]+/;
+    return isString(addr) && re.test(addr);
+  }
+
+  let testPassword = function(pwd) {
+    return isString(pwd) && pwd.length > 6;
+  }
+
+  let testDisplayName = function(name) {
+    return isString(name) && name.length > 3;
+  }
+
+  let testLocation = function(loc) {
+    // TODO: Replace hard coded locations with something more flexible
+    // TODO: Add locations based on school
+    let validLocations = ['Simmons Hall', 'Maseeh Hall',
+                          'McCormick Hall', 'Burton Conner',
+                          'Random Hall', 'Next House',
+                          'New House', 'Martin Trust Center'];
+    return isString(loc) && validLocations.includes(loc);
+  }
+
+  valid = (testEmail(email) &&
+           testPassword(password) &&
+           testDisplayName(displayName) &&
+           testLocation(location));
+
+  if (!valid) {
+    next(createError(400, "Invalid input provided."));
+    return;
+  }
 
   // Create the user settings that are passed into Firebase Auth (createUser)
   // Firebase Database (set)
@@ -52,8 +87,13 @@ router.post('/', function(req, res, next) {
   admin.auth().createUser(user_settings_firebase_auth).then((userRecord) => {
     let user = users.child(userRecord.uid)
     user.set(user_settings_firebase_db, (err) => {
-      next(createError(500, "Couldn't create new account in Firebase DB"));
-      return;
+      if (err) { // if an error actually occured
+        next(createError(500, "Couldn't create new account in Firebase DB"));
+        return;
+      } else {
+        console.log("Creating new account with email: " + email);
+        res.send("Created new account successfully.");
+      }
     });
 
   }).catch((err) => {
@@ -61,7 +101,6 @@ router.post('/', function(req, res, next) {
     return;
   });
 
-  console.log("Creating new account with email: " + email);
 });
 
 module.exports = router;
