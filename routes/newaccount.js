@@ -9,7 +9,59 @@ var users = db.ref('users')
 
 /* POST request to create a new account. */
 router.get('/', function(req, res, next) {
-  res.send('Creating account')
+  let email = req.body.email;
+  let emailVerified = false;
+  let disabled = false;
+  let password = req.body.password;
+  let displayName = req.body.displayName;
+  let propic = "https://s3.amazonaws.com/padl.storage1/profile_pictures/default.jpg";
+  let isServiceAccount = req.body.isServiceAccount;
+  let ratings = {"sentinel": ""};
+  let school = "MIT";
+  let location = req.body.location;
+  let offers = {"sentinel": ""};
+  let wishes = {"sentinel": ""};
+
+
+  // Check that all the proposed edits are "good", i.e. non empty and formatted correctly
+  // TODO: Input Validation checks
+
+
+  // Create the user settings that are passed into Firebase Auth (createUser)
+  // Firebase Database (set)
+  let user_settings_firebase_auth = {
+    "email": email,
+    "emailVerified": emailVerified,
+    "password": password,
+    "disabled": disabled,
+    "displayName": displayName,
+  };
+
+  let user_settings_firebase_db = {
+    "email": email,
+    "isServiceAccount": isServiceAccount,
+    "propic": propic,
+    "location": location,
+    "school": school,
+    "offers": offers,
+    "ratings": ratings,
+    "wishes": wishes,
+  };
+
+  admin.auth().createUser(user_settings_firebase_auth).then((userRecord) => {
+    let user = users.child(userRecord.uid)
+    user.set(user_settings_firebase_db, (err) => {
+      next(createError(500, "Couldn't create new account in Firebase DB"));
+      return;
+    });
+
+  }).catch((err) => {
+    next(createError(500, "Couldn't create new account in Firebase Auth"));
+    return;
+  });
+
+  console.log("Creating new account with account details: ");
+  console.log(accountDetails);
 });
 
 module.exports = router;

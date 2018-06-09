@@ -15,7 +15,6 @@ Email: mattfeng4@mit.edu
 Password: testing
 ```
 
-
 ## Resources Used
 
 * Using Firebase to query data on demand (rather than real time): https://howtofirebase.com/save-and-query-firebase-data-ed73fb8c6e3a
@@ -25,6 +24,7 @@ Password: testing
   * `admin.database().ref().child()`
 * Firebase Real Time Messaging: https://www.raywenderlich.com/140836/firebase-tutorial-real-time-chat-2
 * Handling different types of requests in Express.js: https://scotch.io/tutorials/build-a-restful-api-using-node-and-express-4
+* Null vs. Undefined: https://codeburst.io/javascript-null-vs-undefined-20f955215a2
 
 ## API Reference
 
@@ -36,6 +36,7 @@ Password: testing
 
 #### User
 * Fields
+  * `uid*`: The user ID. Handled by Firebase auth.
   * `email*+`: The email that the user uses to login. Handled by Firebase Auth.
   * `emailVerified*`: Handled by Firebase Auth.
   * `phoneNumber*`: The user's phone number. Unused.
@@ -48,21 +49,22 @@ Password: testing
   * `school+`: The school that the user attends.
   * `location+`: Where the user is located, such as dorm or FSILG.
   * `offers`: List of offers the user has posted.
-  * `wishlist`: List of wishes the user has.
+  * `wishes`: List of wishes the user has.
 
 #### Offer
 * Fields
+  * `offerId`
   * `name`
   * `description`
   * `pictures`
   * `price`
-  * `itemId`
   * `seller`
   * `location`
   * `isSold`
 
 ### Rating
 * Fields
+  * `ratingId`
   * `score`
   * `author`
   * `recipient`
@@ -71,6 +73,7 @@ Password: testing
 
 ### Wish
 * Fields
+  * `wishId`
 
 ### Routes
 

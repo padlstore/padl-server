@@ -30,11 +30,11 @@ router.get('/', function(req, res, next) {
 
 /* GET request for a specific user */
 router.get('/:user_id', function(req, res, next) {
-  let user_id = req.params.user_id;
-  let user = users.child(user_id);
+  let uid = req.params.user_id;
+  let user = users.child(uid);
 
   // Check that the user exists, both in Firebase Auth and Firebase DB
-  var firebase_auth_promise = admin.auth().getUser(user_id);
+  var firebase_auth_promise = admin.auth().getUser(uid);
   var firebase_db_promise = user.once('value');
 
   Promise.all([firebase_auth_promise, firebase_db_promise]).then((values) => {
@@ -42,10 +42,16 @@ router.get('/:user_id', function(req, res, next) {
 
     // Verify that the user exists in Firebase DB
     if (snap.val() === null)
-      throw new Error("User '" + user_id + "'  missing in database");
+      throw new Error("User '" + uid + "'  missing in database");
 
-    // Send information about the user
-    res.send(snap.val());
+    // Augment and send information about the user
+    let userInfo = snap.val();
+    userInfo.displayName = record.displayName;
+    userInfo.emailVerified = record.emailVerified;
+    userInfo.disabled = record.disabled;
+    userInfo.uid = record.uid;
+
+    res.send(userInfo);
 
   }).catch((err) => {
     next(createError(500, "Couldn't get user info: " + err.message));
@@ -140,9 +146,5 @@ router.post('/:user_id/edit_profile', function(req, res, next) {
   });
 
 });
-
-
-
-
 
 module.exports = router;
