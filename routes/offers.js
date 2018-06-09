@@ -46,6 +46,19 @@ router.get('/:offer_id', function(req, res, next) {
   let offerId = req.params.offer_id;
   let offer = offers.child(offerId);
 
+  offer.once('value').then((snap) => {
+
+    // Verify that the offer exists
+    if (snap.val() === null)
+      throw new Error("Offer with id '" + offerId + "' doesn't exist.");
+
+    let offerInfo = snap.val();
+    res.send(offerInfo);
+
+  }).catch((err) => {
+    next(createError(500, "Couldn't get offer: " + err.message));
+    return;
+  });
 
 });
 
@@ -114,6 +127,7 @@ router.post('/new', function(req, res, next) {
   });
 
 });
+
 
 /* Edit an offer. */
 router.post('/:offer_id/edit', function(req, res, next) {
