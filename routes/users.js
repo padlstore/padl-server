@@ -33,11 +33,12 @@ router.get('/:user_id', function(req, res, next) {
   let user_id = req.params.user_id;
   let user = users.child(user_id);
 
-  var firebase_auth_promise = admin.auth().getUser(user_id)
-  var firebase_db_promise = user.once('value')
+  // Check that the user exists, both in Firebase Auth and Firebase DB
+  var firebase_auth_promise = admin.auth().getUser(user_id);
+  var firebase_db_promise = user.once('value');
 
   Promise.all([firebase_auth_promise, firebase_db_promise]).then((values) => {
-    let [record, snap] = values
+    let [record, snap] = values;
 
     // Verify that the user exists in Firebase DB
     if (snap.val() === null)
@@ -64,41 +65,61 @@ router.get('/:user_id', function(req, res, next) {
 router.post('/:user_id/edit_profile_picture', function(req, res, next) {
   let user_id = req.params.user_id;
   let user = users.child(user_id);
-  console.log(req.body)
-  let new_propic = req.body.propic;
+  let edits = req.body.edits;
 
-  // first check that they provided a profile picture URL
-  if (new_propic == null) {
-    next(createError(500, "Couldn't update user profile picture: empty 'propic' argument"));
+  if (edits === null)
+    throw new Error("Edits are null");
+
+  // DEBUG
+  console.log(edits);
+
+  const fields = [
+    'email',
+    'password',
+    'displayName',
+    'propic',
+    'isServiceAccount',
+    'ratings',
+    'school',
+    'location',
+    'offers',
+    'wishlist',
+  ]
+
+  var valid_format = function(key, value) {
+    return true;
   }
 
-  // handles the actual updating of the profile picture; needed to prevent
-  // nesting of callbacks
-  var update_propic = function (userRef) {
-    userRef.update({
-      'propic': new_propic,
-    }, (err) => {
+  // Check that all the proposed edits are "good", i.e. non empty and formatted correctly
+  for (var field in fields) {
+    if (edits[field] !== null && valid_format(field, edits[field])) {
+      throw new Error("Edit error: Bad format for '" + key + "'");
+    }
+  }
+
+  var firebase_auth_promise = admin.auth().getUser(user_id);
+  var firebase_db_promise = user.once('value');
+
+  Promise.all([firebase_auth_promise, firebase_db_promise]).then((values) => {
+    let [record, snap] = values;
+
+    // Verify that the user exists in Firebase DB
+    if (snap.val() === null)
+      throw new Error("User '" + user_id + "'  missing in database");
+
+    user.update(edits, (err) => {
       if (err) {
         console.log(err);
-        next(createError(500, "Couldn't update user profile picture:" + err));
+        next(createError(500, "Couldn't update user info: " + err));
       } else {
-        res.send('Profile picture updated successfully.');
+        res.send('User info updated successfully.');
       }
     });
-  }
 
-  user.once('value').then((snap) => {
-    // Verify that the user exists
-    if (snap.val() === null)
-      throw new Error("User '" + user_id + "'  missing in database, can't update profile picture");
-
-    // Update the user profile picture synchronously
-    update_propic(user);
   }).catch((err) => {
     console.log(err);
     next(createError(500, "Couldn't get user info (edit_profile_picture): " + err.message));
   });
-
 });
 
 
