@@ -84,6 +84,7 @@ Password: testing
     * `email` The user's email address that they want to use to access their account.
     * `password` The user's password that they want to use to authenticate.
     * `displayName` The user's name that they want other users to see.
+    * `location` The location where the user lives.
   * Requires Authentication: `false`
   * Modifies database: `true`
   * Relevant database keys: `/users`
@@ -124,6 +125,38 @@ Password: testing
   * Updates the various attributes of a user in the Firebase `users` dictionary, at `users/(user_id)`
 
 #### `routes/offers.js`
+* `/offers`
+  * Type: `GET`
+  * Body parameters: None
+
+* `/offers/:offer_id`
+  * Type: `GET`
+  * Body parameters: None
+  
+* `/offers/new`
+  * Type: `POST`
+  * Body parameters:
+    * `name`: The name of the offer.
+    * `description`: The description of the offer.
+    * `price`: The price of the offer. Can accept any valid format of pricing, as well as `Price Negotiable`.
+    * `location`: The location the offer can be found.
+  * Requires Authentication: `true`
+  * Modifies database: `true`
+  * Relevant database keys: `/offers/`
+  * Creates a new offer.
+
+* `/offers/:offer_id/edit`
+  * Type: `POST`
+  * Body parameters:
+    * `edits`: A JSON dictionary encoded as a string with all the edits that would like to make.
+      * `name` The new name to use.
+      * `description` The new description to use.
+      * `price` The new price to use.
+      * `location` The new location to use.
+  * Requires Authentication: ``
+  * Modifies database: `true`
+  * Relevant database keys: `/offers/(offer_id)`
+  * Changes the entries for the relevant offer.
 
 #### `routes/newaccount.js`
 * `/newaccount`

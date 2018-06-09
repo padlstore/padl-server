@@ -25,8 +25,8 @@ var isValidLocation = function(loc) {
   let validLocations = ['Simmons Hall', 'Maseeh Hall',
                         'McCormick Hall', 'Burton Conner',
                         'Random Hall', 'Next House',
-                        'New House', 'Martin Trust Center'];
-  return utils.isString(loc) && validLocations.includes(loc);
+                        'New House', 'Martin Trust Center', 'Other'];
+  return isString(loc) && validLocations.includes(loc);
 }
 
 var isValidDisplayName = function(name) {
@@ -42,6 +42,7 @@ var isValidOfferDescription = function(description) {
 }
 
 var isValidPrice = function(price) {
+  // TODO: Find a library to handle price parsing, etc.
   let re = /^\$?\-?([1-9]{1}[0-9]{0,2}(\,\d{3})*(\.\d{0,2})?|[1-9]{1}\d{0,}(\.\d{0,2})?|0(\.\d{0,2})?|(\.\d{1,2}))$|^\-?\$?([1-9]{1}\d{0,2}(\,\d{3})*(\.\d{0,2})?|[1-9]{1}\d{0,}(\.\d{0,2})?|0(\.\d{0,2})?|(\.\d{1,2}))$|^\(\$?([1-9]{1}\d{0,2}(\,\d{3})*(\.\d{0,2})?|[1-9]{1}\d{0,}(\.\d{0,2})?|0(\.\d{0,2})?|(\.\d{1,2}))\)$/
 
   return isString(price) && (price == "Price Negotiable" || re.test(price));
@@ -50,6 +51,7 @@ var isValidPrice = function(price) {
 functions = {
   "isString":                isString,
   "isBoolean":               isBoolean,
+  "isMinLengthString":       isMinLengthString,
   "isValidEmail":            isValidEmail,
   "isValidPassword":         isValidPassword,
   "isValidLocation":         isValidLocation,

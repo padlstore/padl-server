@@ -142,10 +142,44 @@ router.post('/:offer_id/edit', function(req, res, next) {
     return;
   }
 
-  //TODO: validate edits
+  // Validate edits
+  const fields = ['name', 'description', 'price', 'location'];
+  let valid_format = function(key, value) {
+    switch(key) {
+      case 'name':        return utils.isValidOfferName(value);
+      case 'description': return utils.isValidOfferDescription(value);
+      case 'price':       return utils.isValidPrice(value);
+      case 'location':    return utils.isValidLocation(value);
+      default:            return false;
+    }
+  }
 
+  for (const field of fields) {
+    if (edits[field] !== undefined && !valid_format(field, edits[field])) {
+      next(createError(400, "Edit error: Bad format for '" + field + "'"));
+      return;
+    }
+  }
 
+  let offer = offers.child(offerId);
 
+  offer.once('value').then((snap) => {
+    // Check that the offer exists
+    if (snap.val() === null)
+      throw new Error("Offer does not exist")
+
+    // Try and update the offer
+    offer.update(edits, (err) => {
+      if (err) {
+        throw new Error("Error in writing update to offer.");
+      } else {
+        res.send("Offer update was successful.");
+      }
+    });
+  }).catch((err) => {
+    next(createError(500, "Error in updating offer: " + err.message));
+    return;
+  });
 });
 
 
