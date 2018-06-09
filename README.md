@@ -28,7 +28,8 @@ Password: testing
 
 ## API Reference
 
-### User
+### Main Keys ("Tables")
+#### User
 * Fields
   * `email*`: The email that the user uses to login. Handled by Firebase Auth.
   * `emailVerified*`: Handled by Firebase Auth.
@@ -44,9 +45,16 @@ Password: testing
   * `offers`: List of offers the user has posted.
   * `wishlist`: List of wishes the user has.
 
-### Offer
+#### Offer
 * Fields
-  * ``
+  * `name`
+  * `description`
+  * `pictures`
+  * `price`
+  * `itemId`
+  * `seller`
+  * `location`
+  * `isSold`
 
 ### Rating
 * Fields
@@ -59,7 +67,9 @@ Password: testing
 ### Wish
 * Fields
 
-### `routes/newaccount.js`
+### Routes
+
+#### `routes/newaccount.js`
 * `/newaccount`
   * Type: `POST`
   * Body parameters:
@@ -72,7 +82,7 @@ Password: testing
   * Creates a new user with the specified body parameters and stores the user in both Firebase Authentication
 
 
-### `routes/users.js`
+#### `routes/users.js`
 * `/users`
   * Type: `GET`
   * Requires Authentication: `true`
@@ -94,4 +104,4 @@ Password: testing
   * Relevant database keys: `/users/(user_id)/propic`
   * Updates the `propic` attribute of a user in the Firebase `users` dictionary, at `users/(user_id)`
 
-### `routes/offers.js`
+#### `routes/offers.js`
