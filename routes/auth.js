@@ -1,9 +1,10 @@
 /*
  * auth.js
+ * -------
  * Handles the creation of a Firebase Admin connection to Firebase.
  *
  */
- 
+
 var admin = require('firebase-admin');
 
 var serviceAccount = require('../secrets/service_account_key.json');
