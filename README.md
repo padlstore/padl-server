@@ -189,3 +189,6 @@ Password: testing
 ### Signing In (Client Side)
 * `firebase.auth().signIn(withEmail email: String, password: String, completion:)`
   * Afterward, check if the user has emailVerified; if not -- send an email verification and don't continue
+
+### Uploading Images
+* Send a POST request to `/amazons3/upload` with body parameter `img` (encoded as `form-data`). Returns a

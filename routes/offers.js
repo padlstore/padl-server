@@ -32,7 +32,7 @@ router.get('/', function(req, res, next) {
 
     // Return the info about all offers
     let offersInfo = snap.val();
-    res.send(offersInfo);
+    res.json(offersInfo);
 
   }).catch((err) => {
     next(createError(500, "Couldn't get all offers: " + err.message));
@@ -53,7 +53,7 @@ router.get('/:offer_id', function(req, res, next) {
       throw new Error("Offer with id '" + offerId + "' doesn't exist.");
 
     let offerInfo = snap.val();
-    res.send(offerInfo);
+    res.json(offerInfo);
 
   }).catch((err) => {
     next(createError(500, "Couldn't get offer: " + err.message));

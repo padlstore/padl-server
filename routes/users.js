@@ -30,7 +30,7 @@ router.get('/', function(req, res, next) {
 
     // Send information about the user
     let usersInfo = snap.val();
-    res.send(usersInfo);
+    res.json(usersInfo);
 
   }).catch((err) => {
     next(createError(500, "Couldn't get all users: " + err.message));
@@ -61,7 +61,7 @@ router.get('/:user_id', function(req, res, next) {
     userInfo.disabled = record.disabled;
     userInfo.uid = record.uid;
 
-    res.send(userInfo);
+    res.json(userInfo);
 
   }).catch((err) => {
     next(createError(500, "Couldn't get user info: " + err.message));
