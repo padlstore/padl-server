@@ -3,11 +3,13 @@ var express = require('express');
 var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
+var fileUpload = require('express-fileupload');
 
 var newAccountRouter = require('./routes/newaccount');
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 var offersRouter = require('./routes/offers');
+var amazons3Router = require('./routes/amazons3');
 
 var app = express();
 var admin = require('./routes/auth')
@@ -21,6 +23,9 @@ app.use(express.json()); // this is the body parser
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
+app.use(fileUpload({ // allow for file uploads
+  limits: { filesize: 5 * 1024 * 1024 },
+}));
 
 
 /* Routes that DO NOT require authentication */
@@ -55,7 +60,8 @@ app.use(function(req, res, next) {
 /* Routes that require authentication */
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
-app.use('/offers', offersRouter)
+app.use('/offers', offersRouter);
+app.use('/amazons3', amazons3Router);
 
 
 
