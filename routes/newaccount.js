@@ -38,8 +38,11 @@ router.post('/', function(req, res, next) {
            utils.isValidLocation(location));
 
   if (!valid) {
-    next(createError(400, "Invalid input provided."));
-    return;
+    res.status(400);
+    res.json({
+      "success": false,
+      "message": "Invalid input provided."
+    });
   }
 
   // Create the user settings that are passed into Firebase Auth (createUser)
@@ -67,8 +70,11 @@ router.post('/', function(req, res, next) {
     let user = users.child(userRecord.uid)
     user.set(user_settings_firebase_db, (err) => {
       if (err) { // if an error actually occured
-        next(createError(500, "Couldn't create new account in Firebase DB"));
-        return;
+        res.status(500);
+        res.send({
+          "success": false,
+          "message": "Couldn't create new account in Firebase DB"
+        });
       } else {
         console.log("Creating new account with email: " + email);
         res.json({"success": true});
@@ -76,8 +82,11 @@ router.post('/', function(req, res, next) {
     });
 
   }).catch((err) => {
-    next(createError(500, "Couldn't create new account in Firebase Auth"));
-    return;
+    res.status(500);
+    res.json({
+      "success": false,
+      "message": "Couldn't create new account in Firebase Auth"
+    });
   });
 
 });
