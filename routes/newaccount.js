@@ -71,12 +71,13 @@ router.post('/', function(req, res, next) {
     user.set(user_settings_firebase_db, (err) => {
       if (err) { // if an error actually occured
         res.status(500);
-        res.send({
+        res.json({
           "success": false,
           "message": "Couldn't create new account in Firebase DB"
         });
       } else {
         console.log("Creating new account with email: " + email);
+        res.status(200);
         res.json({"success": true});
       }
     });
