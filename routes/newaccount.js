@@ -43,6 +43,7 @@ router.post('/', function(req, res, next) {
       "success": false,
       "message": "Invalid input provided."
     });
+    return;
   }
 
   // Create the user settings that are passed into Firebase Auth (createUser)
@@ -75,10 +76,12 @@ router.post('/', function(req, res, next) {
           "success": false,
           "message": "Couldn't create new account in Firebase DB"
         });
+        return;
       } else {
         console.log("Creating new account with email: " + email);
         res.status(200);
         res.json({"success": true});
+        return;
       }
     });
 
@@ -88,6 +91,7 @@ router.post('/', function(req, res, next) {
       "success": false,
       "message": "Couldn't create new account in Firebase Auth"
     });
+    return;
   });
 
 });
