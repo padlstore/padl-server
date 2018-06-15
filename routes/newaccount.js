@@ -71,7 +71,7 @@ router.post('/', function(req, res, next) {
         return;
       } else {
         console.log("Creating new account with email: " + email);
-        res.send("Created new account successfully.");
+        res.json({"success": true});
       }
     });
 
