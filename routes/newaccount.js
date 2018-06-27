@@ -5,18 +5,18 @@
  *
  */
 
-var createError = require('http-errors');
-var express = require('express');
-var router = express.Router();
+var createError = require('http-errors')
+var express = require('express')
+var router = express.Router()
 
-var admin = require('./auth');
-var utils = require('./utils');
+var admin = require('./auth')
+var utils = require('./utils')
 
-var db = admin.database();
-var users = db.ref('users');
+var db = admin.database()
+var users = db.ref('users')
 
 /* POST request to create a new account. */
-router.post('/', function(req, res, next) {
+router.post('/', function (req, res, next) {
   let email = req.body.email;
   let emailVerified = false;
   let disabled = false;

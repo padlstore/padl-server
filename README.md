@@ -192,3 +192,41 @@ Password: testing
 
 ### Uploading Images
 * Send a POST request to `/amazons3/upload` with body parameter `img` (encoded as `form-data`). Returns a
+
+## Payments
+
+### Payment System
+
+#### Platform
+Stripe
+
+#### Actors
+* Buyer<sup>E</sup>
+* Padl<sup>P</sup>
+* Padl<sup>S</sup>
+* Seller<sup>E</sup>
+
+where `E — Express account`, `P — Platform account`, `S — Standard account`
+
+#### Charges
+
+##### Buying Stage
+Buyer → Via Destination Charge → Padl<sup>S</sup>
+
+##### Payout Stage
+Padl<sup>S</sup> → Via Destination Charge → Seller<sup>E</sup>
+
+Refund Stage:
+Padl<sup>S</sup> → Via Refund → Buyer<sup>E</sup>
+
+#### Purchase Steps
+1. Buyer clicks Purchase Item
+2. Mobile App sends a `POST` request to `/offers/:offer_id/purchase`
+    - This call locks the offer to the buyer and provide the mobile app with the details of the payment: `price`, `name` (of the offer), `user_id(S)` (in the form of their name).
+    - From `offer_id`, get the seller’s `user_id(S)` and the offer’s `price` and `name`.
+3. The `POST` request returns a JSON document with the details of the purchase to be made, which is then parsed by the Mobile App and converted into a secure collect payment information page.
+    - This page will generate a `source` token
+4. Mobile App sends a `POST` request to `/offers/:offer_id/charge`
+    - Check that the
+    - The server will create a **Destination Charge** with the `source` (a token) provided by the client and destination as the seller's `account_id`.
+5. Finally, Firebase cloud function that checks when both parties have committed to the transfer in the offer (`seller_contract` and `buyer_contract`), automatically transfer from the Padl platform account to the seller.
