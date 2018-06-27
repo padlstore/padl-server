@@ -97,7 +97,7 @@ router.post('/new', function (req, res, next) {
     'name': name,
     'description': description,
     'pictures': pictures,
-    'price': price,
+    'price': Number(price),
     'seller': seller,
     'location': location,
     'sold': isSold,

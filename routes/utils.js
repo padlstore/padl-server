@@ -1,32 +1,32 @@
-var isString = function(obj) {
+var isString = function (obj) {
   return (Object.prototype.toString.call(obj) === '[object String]');
 }
 
-var isBoolean = function(obj) {
+var isBoolean = function (obj) {
   return obj === true || obj === false;
 }
 
-var isMinLengthString = function(str, len) {
+var isMinLengthString = function (str, len) {
   return isString(str) && str.length >= len;
 }
 
-var isValidEmail = function(email) {
+var isValidEmail = function (email) {
   let re = /[^\s@]+@[^\s@]+\.[^\s@]+/;
   return isString(email) && re.test(email);
 }
 
-var isValidPassword = function(password) {
+var isValidPassword = function (password) {
   return isMinLengthString(password, 9);
 }
 
-var isValidLocation = function(loc) {
+var isValidLocation = function (loc) {
   // TODO: Replace hard coded locations with something more flexible
   // TODO: Add locations based on school
   let validLocations = ['Simmons Hall', 'Maseeh Hall',
                         'McCormick Hall', 'Burton Conner',
                         'Random Hall', 'Next House',
-                        'New House', 'Martin Trust Center', 'Other'];
-  return isString(loc) && validLocations.includes(loc);
+                        'New House', 'Martin Trust Center', 'Other']
+  return isString(loc) && validLocations.includes(loc)
 }
 
 var isValidDisplayName = function(name) {
@@ -41,11 +41,13 @@ var isValidOfferDescription = function(description) {
   return isMinLengthString(description, 0);
 }
 
-var isValidPrice = function(price) {
-  // TODO: Find a library to handle price parsing, etc.
-  let re = /^\$?\-?([1-9]{1}[0-9]{0,2}(\,\d{3})*(\.\d{0,2})?|[1-9]{1}\d{0,}(\.\d{0,2})?|0(\.\d{0,2})?|(\.\d{1,2}))$|^\-?\$?([1-9]{1}\d{0,2}(\,\d{3})*(\.\d{0,2})?|[1-9]{1}\d{0,}(\.\d{0,2})?|0(\.\d{0,2})?|(\.\d{1,2}))$|^\(\$?([1-9]{1}\d{0,2}(\,\d{3})*(\.\d{0,2})?|[1-9]{1}\d{0,}(\.\d{0,2})?|0(\.\d{0,2})?|(\.\d{1,2}))\)$/
-
-  return isString(price) && (price == "Price Negotiable" || re.test(price));
+var isValidPrice = function (price) {
+  try {
+    price = Number(price)
+    return true
+  } catch (error) {
+    return false
+  }
 }
 
 functions = {
