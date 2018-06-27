@@ -202,7 +202,7 @@ router.post('/:offer_id/purchase', function (req, res, next) {
 
     // Lock the offer
     offerRef.transaction(function (offer) {
-      if (offer.lockedTo != '') {
+      if (offer.lockedTo !== '') {
         offer.lockedTo = buyerUID
         offer.isSold = true
       } else {
@@ -211,14 +211,21 @@ router.post('/:offer_id/purchase', function (req, res, next) {
       return offer
     }, (error, committed, snapshot) => {
       if (error) {
+        res.status(400)
         res.json(JSON.stringify({
           'success': false,
           'message': 'Could not lock offer.'
         }))
       }
 
+      var offerUpdatedInfo = snapshot.val()
+
       res.json(JSON.stringify({
-        'success': true
+        'success': true,
+        'pictures': offerUpdatedInfo.pictures,
+        'price': offerUpdatedInfo.price,
+        'name': offerUpdatedInfo.name,
+        'offerId': offerUpdatedInfo.offerId
       }))
     })
   })
