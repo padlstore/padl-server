@@ -80,6 +80,9 @@ router.post('/new', function (req, res, next) {
   let isSold = false
   let isDisabled = false
   let lockedTo = ''
+  let buyerSigned = false
+  let sellerSigned = false
+  let chargeId = ''
 
   let sellerRef = users.child(seller)
   let sellerOffersRef = sellerRef.child('offers')
@@ -108,7 +111,10 @@ router.post('/new', function (req, res, next) {
     'dateAdded': dateAdded,
     'disabled': isDisabled,
     'dateSold': dateSold,
-    'lockedTo': lockedTo
+    'lockedTo': lockedTo,
+    'sellerSigned': sellerSigned,
+    'buyerSigned': buyerSigned,
+    'chargeId': chargeId
   }
 
   // In the list of offer references under '/users', store the offerId of the
@@ -124,7 +130,11 @@ router.post('/new', function (req, res, next) {
       let newOfferRef = sellerOffersRef.child(offerId)
       newOfferRef.set(linkToOffersTable)
 
-      res.send('Offer was created successfully.')
+      res.json({
+        'success': true,
+        'offerId': offerId,
+        'message': 'Offer was created successfully.'
+      })
     }
   })
 })
@@ -168,9 +178,16 @@ router.post('/:offer_id/edit', function (req, res, next) {
   let offer = offers.child(offerId)
 
   offer.once('value').then((snap) => {
+    let offerInfo = snap.val()
     // Check that the offer exists
-    if (snap.val() === null) {
+    if (offerInfo === null) {
       throw new Error('Offer does not exist')
+    }
+
+    // Check to make sure that it's the owner who's editing the offer
+    let uid = req.auth.uid
+    if (uid !== offerInfo.seller) {
+      throw new Error('Can only edit offers that belong to you')
     }
 
     // Try and update the offer
@@ -215,19 +232,20 @@ router.post('/:offer_id/purchase', function (req, res, next) {
     }
 
     offerRef.update(updates).then(() => {
-      res.json(JSON.stringify({
+      res.json({
         'success': true,
         'pictures': offer.pictures,
         'price': offer.price,
         'name': offer.name,
         'offerId': offer.offerId
-      }))
+      })
     }).catch((err) => {
       next(createError(500, 'Could not update lock on offer: ' + err.message))
     })
   })
 })
 
+/* Charge the buyer's card for purchasing an offer */
 router.post('/:offer_id/charge', function (req, res, next) {
   let buyerUID = req.auth.uid
   let source = req.body.source
@@ -235,6 +253,7 @@ router.post('/:offer_id/charge', function (req, res, next) {
 
   let offerRef = offers.child(offerId)
 
+  // Make sure that there is a source token
   if (source === undefined || source === null || source === '') {
     next(createError(400, 'Source token was not provided.'))
     return
@@ -259,46 +278,64 @@ router.post('/:offer_id/charge', function (req, res, next) {
                              offer.name + ' with id ' +
                              offer.offerId
     let chargeAmount = offer.price
-    // console.log(offer)
-    // console.log(chargeAmount)
 
     // FOR TESTING ONLY:
     source = 'tok_visa'
 
-    const charge = stripe.charges.create({
+    // Create the charge
+    stripe.charges.create({
       amount: chargeAmount,
       currency: 'usd',
       description: chargeDescription,
       source: source
-    }).catch((err) => {
-      next(createError(500, 'Charge error: ' + err.message))
-    })
+    }, (err, charge) => {
+      // If charge couldn't be created, tell why
+      if (err) {
+        next(createError(500, 'Charge error: ' + err.message))
+        return
+      }
 
-    let transactionTime = Date.now()
+      let transactionTime = Date.now()
 
-    const logTransaction = transactions.child(offerId).set({
-      'dateTime': transactionTime
-    }).catch((err) => {
-      console.log('Could not push new transaction for offer_id=' +
-                  offerId + ': ' + err.message)
-    })
+      // Update Firebase database with transaction details in case of refunds
+      transactions.child(offerId).set({
+        'dateTime': transactionTime,
+        'chargeId': charge.id
+      }).catch((err) => {
+        console.log('Could not push new transaction for offer_id=' +
+                    offerId + ': ' + err.message)
+      })
+      offerRef.update({
+        'sold': true,
+        'dateSold': transactionTime,
+        'chargeId': charge.id
+      }).catch((err) => {
+        console.log('Unable to change to offer to sold state: ' + err.message)
+      })
 
-    const setSold = offerRef.update({
-      'sold': true,
-      'dateSold': transactionTime
-    }).catch((err) => {
-      console.log('Unable to change to offer to sold state: ' + err.message)
-    })
-
-    Promise.all([logTransaction, charge, setSold]).then((_, success, __) => {
-      res.json(JSON.stringify({
+      res.json({
         'success': true,
         'message': 'Payment was processed successfully.'
-      }))
+      })
     })
   }).catch((err) => {
     next(createError(500, err.message))
   })
+})
+
+/* Buyer decides that they no longer want to purchase this item */
+router.post('/:offer_id/cancel_purchase', function (req, res, next) {
+
+})
+
+/* Buyer signs the contract that the transaction occured */
+router.post('/:offer_id/buyer_sign_contract', function (req, res, next) {
+
+})
+
+/* Seller signs the contract that the transaction occured */
+router.post('/:offer_id/seller_sign_contract', function (req, res, next) {
+
 })
 
 module.exports = router
