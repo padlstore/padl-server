@@ -12,9 +12,13 @@ var router = express.Router()
 var admin = require('./auth')
 var utils = require('./utils')
 
+var stripeConfig = require('../secrets/stripe_config')
+var stripe = require('stripe')(stripeConfig.secretKey)
+
 var db = admin.database()
 var offers = db.ref('offers')
 var users = db.ref('users')
+var transactions = db.ref('transactions')
 
 /*
  ********************
@@ -189,37 +193,111 @@ router.post('/:offer_id/purchase', function (req, res, next) {
   let buyerUID = req.auth.uid
 
   // Lock the offer
-  offerRef.once('value', (snap) => {
-    var offer = snap.val()
+  let offer
+  offerRef.once('value').then((snap) => {
+    offer = snap.val()
     if (offer === null) {
-      next(createError('Offer does not exist.'))
+      throw new Error('Offer does not exist.')
     }
 
     if (offer.sold) {
-      next(createError('Offer has already been sold.'))
+      throw new Error('Offer has already been sold.')
     }
 
-    if (offer.lockedTo === '') {
-      let updates = {
-        'lockedTo': buyerUID
-      }
-
-      offerRef.update(updates, (err) => {
-        if (err) {
-          next(createError(500, 'Could not update lock on offer: ' + err.message))
-        }
-
-        res.json(JSON.stringify({
-          'success': true,
-          'pictures': offer.pictures,
-          'price': offer.price,
-          'name': offer.name,
-          'offerId': offer.offerId
-        }))
-      })
-    } else {
-      next(createError(500, 'Offer is already locked.'))
+    if (offer.lockedTo !== '') {
+      throw new Error('Offer has already been locked to another user.')
     }
+  }).catch((err) => {
+    next(createError(500, 'Error in locking offer: ' + err.message))
+  }).then(() => {
+    let updates = {
+      'lockedTo': buyerUID
+    }
+
+    offerRef.update(updates).then(() => {
+      res.json(JSON.stringify({
+        'success': true,
+        'pictures': offer.pictures,
+        'price': offer.price,
+        'name': offer.name,
+        'offerId': offer.offerId
+      }))
+    }).catch((err) => {
+      next(createError(500, 'Could not update lock on offer: ' + err.message))
+    })
+  })
+})
+
+router.post('/:offer_id/charge', function (req, res, next) {
+  let buyerUID = req.auth.uid
+  let source = req.body.source
+  let offerId = req.params.offer_id
+
+  let offerRef = offers.child(offerId)
+
+  if (source === undefined || source === null || source === '') {
+    next(createError(400, 'Source token was not provided.'))
+    return
+  }
+
+  offerRef.once('value').then((snap) => {
+    let offer = snap.val()
+
+    if (offer === null) {
+      throw new Error('Offer does not exist')
+    }
+
+    if (offer.lockedTo !== buyerUID) {
+      throw new Error('Offer is not locked to you.')
+    }
+
+    if (offer.sold) {
+      throw new Error('Offer has already been charged.')
+    }
+
+    let chargeDescription = 'Charge for purchasing: ' +
+                             offer.name + ' with id ' +
+                             offer.offerId
+    let chargeAmount = offer.price
+    // console.log(offer)
+    // console.log(chargeAmount)
+
+    // FOR TESTING ONLY:
+    source = 'tok_visa'
+
+    const charge = stripe.charges.create({
+      amount: chargeAmount,
+      currency: 'usd',
+      description: chargeDescription,
+      source: source
+    }).catch((err) => {
+      next(createError(500, 'Charge error: ' + err.message))
+    })
+
+    let transactionTime = Date.now()
+
+    const logTransaction = transactions.child(offerId).set({
+      'dateTime': transactionTime
+    }).catch((err) => {
+      console.log('Could not push new transaction for offer_id=' +
+                  offerId + ': ' + err.message)
+    })
+
+    const setSold = offerRef.update({
+      'sold': true,
+      'dateSold': transactionTime
+    }).catch((err) => {
+      console.log('Unable to change to offer to sold state: ' + err.message)
+    })
+
+    Promise.all([logTransaction, charge, setSold]).then((_, success, __) => {
+      res.json(JSON.stringify({
+        'success': true,
+        'message': 'Payment was processed successfully.'
+      }))
+    })
+  }).catch((err) => {
+    next(createError(500, err.message))
   })
 })
 

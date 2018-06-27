@@ -16,20 +16,22 @@ var s3_config = require('../secrets/s3_config');
 var AWS = require('aws-sdk');
 AWS.config.loadFromPath("./secrets/s3_config.json");
 
-var https = require('https');
+var https = require('https')
+
 var agent = new https.Agent({
-  maxSockets: 25,
-});
+  maxSockets: 25
+})
+
 var s3 = new AWS.S3({
   apiVersion: '2006-03-01',
   region: 'us-east-2',
   httpOptions: {
-    agent: agent,
+    agent: agent
   },
   params: {
     Bucket: s3_config.buckets.bucketName,
   }
-});
+})
 
 /*
  **********************

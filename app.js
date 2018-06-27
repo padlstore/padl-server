@@ -54,10 +54,10 @@ app.use(function (req, res, next) {
 })
 
 /* Routes that require authentication */
-app.use('/', indexRouter);
-app.use('/users', usersRouter);
-app.use('/offers', offersRouter);
-app.use('/amazons3', amazons3Router);
+app.use('/', indexRouter)
+app.use('/users', usersRouter)
+app.use('/offers', offersRouter)
+app.use('/amazons3', amazons3Router)
 
 /* Catch 404s and forward to error handler */
 app.use(function (req, res, next) {
