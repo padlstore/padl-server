@@ -230,3 +230,22 @@ Padl<sup>S</sup> → Via Refund → Buyer<sup>E</sup>
     - Check that the
     - The server will create a **Destination Charge** with the `source` (a token) provided by the client and destination as the seller's `account_id`.
 5. Finally, Firebase cloud function that checks when both parties have committed to the transfer in the offer (`seller_contract` and `buyer_contract`), automatically transfer from the Padl platform account to the seller.
+
+#### Create a transfer
+```bash
+curl https://api.stripe.com/v1/transfers \
+   -u sk_test_dVPp3WC9E2ShH9v4lcx1KgYT: \
+   -d amount=800 \
+   -d currency=usd \
+   -d destination="acct_1ChHh9GWAhkJbY28"
+```
+
+#### Create a charge
+```bash
+curl https://api.stripe.com/v1/charges \
+   -u sk_test_dVPp3WC9E2ShH9v4lcx1KgYT: \
+   -d amount=999 \
+   -d currency=usd \
+   -d description="Example charge" \
+   -d source=tok_bypassPending
+```
