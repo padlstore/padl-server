@@ -72,7 +72,7 @@ router.post('/new', function (req, res, next) {
   let seller = req.auth.uid
   let location = req.body.location
   let dateAdded = Date.now()
-  let dateSold = ''
+  let dateSold = -1
   let isSold = false
   let isDisabled = false
   let lockedTo = ''
@@ -188,46 +188,38 @@ router.post('/:offer_id/purchase', function (req, res, next) {
   let offerRef = offers.child(offerId)
   let buyerUID = req.auth.uid
 
-  offerRef.once('value').then((snap) => {
-    // Check that the offer exists
-    var offerInfo = snap.val()
-
-    if (offerInfo === null) {
-      throw new Error('Offer does not exist.')
+  // Lock the offer
+  offerRef.once('value', (snap) => {
+    var offer = snap.val()
+    if (offer === null) {
+      next(createError('Offer does not exist.'))
     }
 
-    if (offerInfo.isSold) {
-      throw new Error('Offer has already been sold.')
+    if (offer.sold) {
+      next(createError('Offer has already been sold.'))
     }
 
-    // Lock the offer
-    offerRef.transaction(function (offer) {
-      if (offer.lockedTo !== '') {
-        offer.lockedTo = buyerUID
-        offer.isSold = true
-      } else {
-        return
+    if (offer.lockedTo === '') {
+      let updates = {
+        'lockedTo': buyerUID
       }
-      return offer
-    }, (error, committed, snapshot) => {
-      if (error) {
-        res.status(400)
+
+      offerRef.update(updates, (err) => {
+        if (err) {
+          next(createError(500, 'Could not update lock on offer: ' + err.message))
+        }
+
         res.json(JSON.stringify({
-          'success': false,
-          'message': 'Could not lock offer.'
+          'success': true,
+          'pictures': offer.pictures,
+          'price': offer.price,
+          'name': offer.name,
+          'offerId': offer.offerId
         }))
-      }
-
-      var offerUpdatedInfo = snapshot.val()
-
-      res.json(JSON.stringify({
-        'success': true,
-        'pictures': offerUpdatedInfo.pictures,
-        'price': offerUpdatedInfo.price,
-        'name': offerUpdatedInfo.name,
-        'offerId': offerUpdatedInfo.offerId
-      }))
-    })
+      })
+    } else {
+      next(createError(500, 'Offer is already locked.'))
+    }
   })
 })
 
