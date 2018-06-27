@@ -193,9 +193,12 @@ router.post('/:offer_id/edit', function (req, res, next) {
     // Try and update the offer
     offer.update(edits, (err) => {
       if (err) {
-        throw new Error('Error in writing update to offer.')
+        next(createError(500, 'Error in writing update to offer.'))
       } else {
-        res.send('Offer update was successful.')
+        res.json({
+          'success': true,
+          'message': 'Offer update was successful.'
+        })
       }
     })
   }).catch((err) => {
@@ -330,12 +333,84 @@ router.post('/:offer_id/cancel_purchase', function (req, res, next) {
 
 /* Buyer signs the contract that the transaction occured */
 router.post('/:offer_id/buyer_sign_contract', function (req, res, next) {
+  let uid = req.auth.uid
+  let offerId = req.params.offer_id
 
+  let offerRef = offers.child(offerId)
+
+  offerRef.once('value').then((snap) => {
+    let offerInfo = snap.val()
+
+    if (offerInfo === null) {
+      throw new Error('Offer does not exist.')
+    }
+
+    if (!offerInfo.sold) {
+      throw new Error('Offer has not yet been sold!')
+    }
+
+    if (offerInfo.lockedTo !== uid) {
+      throw new Error('You are not the buyer.')
+    }
+
+    let buyerSignature = {
+      'buyerSigned': true
+    }
+
+    offerRef.update(buyerSignature, (err) => {
+      if (err) {
+        next(createError(500, 'Could not sign transaction'))
+      } else {
+        res.json({
+          'success': true,
+          'message': 'Transaction was successfully signed (buyer)'
+        })
+      }
+    })
+  }).catch((err) => {
+    next(createError(500, err.message))
+  })
 })
 
 /* Seller signs the contract that the transaction occured */
 router.post('/:offer_id/seller_sign_contract', function (req, res, next) {
+  let uid = req.auth.uid
+  let offerId = req.params.offer_id
 
+  let offerRef = offers.child(offerId)
+
+  offerRef.once('value').then((snap) => {
+    let offerInfo = snap.val()
+
+    if (offerInfo === null) {
+      throw new Error('Offer does not exist.')
+    }
+
+    if (!offerInfo.sold) {
+      throw new Error('Offer has not yet been sold!')
+    }
+
+    if (offerInfo.seller !== uid) {
+      throw new Error('You are not the seller.')
+    }
+
+    let sellerSignature = {
+      'sellerSignature': true
+    }
+
+    offerRef.update(sellerSignature, (err) => {
+      if (err) {
+        next(createError(500, 'Could not sign transaction'))
+      } else {
+        res.json({
+          'success': true,
+          'message': 'Transaction was successfully signed (seller)'
+        })
+      }
+    })
+  }).catch((err) => {
+    next(createError(500, err.message))
+  })
 })
 
 module.exports = router
