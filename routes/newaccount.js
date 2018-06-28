@@ -71,27 +71,24 @@ router.post('/', function (req, res, next) {
     let user = users.child(userRecord.uid)
     user.set(user_settings_firebase_db, (err) => {
       if (err) { // if an error actually occured
-        res.status(500);
+        res.status(500)
         res.json({
-          "success": false,
-          "message": "Couldn't create new account in Firebase DB"
-        });
+          'success': false,
+          'message': "Couldn't create new account in Firebase DB"
+        })
       } else {
-        console.log("Creating new account with email: " + email);
-        res.status(200);
-        res.json({"success": true});
+        console.log('Creating new account with email: ' + email)
+        res.status(200)
+        res.json({'success': true})
       }
-    });
-
+    })
   }).catch((err) => {
-    res.status(500);
+    res.status(500)
     res.json({
-      "success": false,
-      "message": "Couldn't create new account in Firebase Auth"
-    });
-    return;
-  });
+      'success': false,
+      'message': "Couldn't create new account in Firebase Auth: " + err.message
+    })
+  })
+})
 
-});
-
-module.exports = router;
+module.exports = router
