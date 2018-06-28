@@ -17,55 +17,53 @@ var users = db.ref('users')
 
 /* POST request to create a new account. */
 router.post('/', function (req, res, next) {
-  let email = req.body.email;
-  let emailVerified = false;
-  let disabled = false;
-  let password = req.body.password;
-  let displayName = req.body.displayName;
-  let propic = "https://s3.amazonaws.com/padl.storage1/profile_pictures/default.jpg";
-  let isServiceAccount = false;
-  let ratings = {"sentinel": ""};
-  let school = "MIT";
-  let location = req.body.location;
-  let offers = {"sentinel": ""};
-  let wishes = {"sentinel": ""};
-
+  let email = req.body.email
+  let emailVerified = false
+  let disabled = false
+  let password = req.body.password
+  let displayName = req.body.displayName
+  let propic = 'https://s3.amazonaws.com/padl.storage1/profile_pictures/default.jpg'
+  let isServiceAccount = false
+  let ratings = {'sentinel': ''}
+  let school = 'MIT'
+  let location = req.body.location
+  let offers = {'sentinel': ''}
+  let wishes = {'sentinel': ''}
 
   // Check that all the proposed edits are "good", i.e. non empty and formatted correctly
-  valid = (utils.isValidEmail(email) &&
+  var valid = (utils.isValidEmail(email) &&
            utils.isValidPassword(password) &&
            utils.isValidDisplayName(displayName) &&
-           utils.isValidLocation(location));
+           utils.isValidLocation(location))
 
   if (!valid) {
-    res.status(400);
+    res.status(400)
     res.json({
-      "success": false,
-      "message": "Invalid input provided."
-    });
-    return;
+      'success': false,
+      'message': 'Invalid input provided.'
+    })
   }
 
   // Create the user settings that are passed into Firebase Auth (createUser)
   // Firebase Database (set)
   let user_settings_firebase_auth = {
-    "email": email,
-    "emailVerified": emailVerified,
-    "password": password,
-    "disabled": disabled,
-    "displayName": displayName,
-  };
+    'email': email,
+    'emailVerified': emailVerified,
+    'password': password,
+    'disabled': disabled,
+    'displayName': displayName
+  }
 
   let user_settings_firebase_db = {
-    "email": email,
-    "isServiceAccount": isServiceAccount,
-    "propic": propic,
-    "location": location,
-    "school": school,
-    "offers": offers,
-    "ratings": ratings,
-    "wishes": wishes,
-  };
+    'email': email,
+    'isServiceAccount': isServiceAccount,
+    'propic': propic,
+    'location': location,
+    'school': school,
+    'offers': offers,
+    'ratings': ratings,
+    'wishes': wishes
+  }
 
   admin.auth().createUser(user_settings_firebase_auth).then((userRecord) => {
     let user = users.child(userRecord.uid)
