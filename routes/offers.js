@@ -83,6 +83,7 @@ router.post('/new', function (req, res, next) {
   let buyerSigned = false
   let sellerSigned = false
   let chargeId = ''
+  let performedTransfer = false
 
   let sellerRef = users.child(seller)
   let sellerOffersRef = sellerRef.child('offers')
@@ -114,7 +115,8 @@ router.post('/new', function (req, res, next) {
     'lockedTo': lockedTo,
     'sellerSigned': sellerSigned,
     'buyerSigned': buyerSigned,
-    'chargeId': chargeId
+    'chargeId': chargeId,
+    'performedTransfer': performedTransfer
   }
 
   // In the list of offer references under '/users', store the offerId of the
@@ -282,9 +284,6 @@ router.post('/:offer_id/charge', function (req, res, next) {
                              offer.offerId
     let chargeAmount = offer.price
 
-    // FOR TESTING ONLY:
-    source = 'tok_visa'
-
     // Create the charge
     stripe.charges.create({
       amount: chargeAmount,
@@ -353,6 +352,10 @@ router.post('/:offer_id/buyer_sign_contract', function (req, res, next) {
       throw new Error('You are not the buyer.')
     }
 
+    if (offerInfo.buyerSigned) {
+      throw new Error('Offer has already been signed.')
+    }
+
     let buyerSignature = {
       'buyerSigned': true
     }
@@ -394,8 +397,12 @@ router.post('/:offer_id/seller_sign_contract', function (req, res, next) {
       throw new Error('You are not the seller.')
     }
 
+    if (offerInfo.sellerSigned) {
+      throw new Error('Offer has already been signed.')
+    }
+
     let sellerSignature = {
-      'sellerSignature': true
+      'sellerSigned': true
     }
 
     offerRef.update(sellerSignature, (err) => {

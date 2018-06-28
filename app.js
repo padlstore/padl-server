@@ -14,6 +14,8 @@ var amazons3Router = require('./routes/amazons3')
 var app = express()
 var admin = require('./routes/auth')
 
+require('./transfers')
+
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs')
