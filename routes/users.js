@@ -15,6 +15,8 @@ var admin = require('./auth')
 var db = admin.database()
 var users = db.ref('users')
 
+var utils = require('./utils')
+
 /*
  ********************
  *** GET requests ***
@@ -38,36 +40,34 @@ router.get('/', function (req, res, next) {
 })
 
 /* GET request for a specific user */
-router.get('/:user_id', function (req, res, next) {
-  let uid = req.params.user_id;
-  let user = users.child(uid);
+router.get('/:userId', function (req, res, next) {
+  let uid = req.params.userId
+  let user = users.child(uid)
 
   // Check that the user exists, both in Firebase Auth and Firebase DB
-  var firebase_auth_promise = admin.auth().getUser(uid);
-  var firebase_db_promise = user.once('value');
+  var firebaseAuthPromise = admin.auth().getUser(uid)
+  var firebaseDBPromise = user.once('value')
 
-  Promise.all([firebase_auth_promise, firebase_db_promise]).then((values) => {
-    let [record, snap] = values;
+  Promise.all([firebaseAuthPromise, firebaseDBPromise]).then((values) => {
+    let [record, snap] = values
 
     // Verify that the user exists in Firebase DB
-    if (snap.val() === null)
-      throw new Error("User '" + uid + "'  missing in database");
+    if (snap.val() === null) {
+      throw new Error("User '" + uid + "'  missing in database")
+    }
 
     // Augment and send information about the user
     let userInfo = snap.val();
-    userInfo.displayName = record.displayName;
-    userInfo.emailVerified = record.emailVerified;
-    userInfo.disabled = record.disabled;
-    userInfo.uid = record.uid;
+    userInfo.displayName = record.displayName
+    userInfo.emailVerified = record.emailVerified
+    userInfo.disabled = record.disabled
+    userInfo.uid = record.uid
 
-    res.json(userInfo);
-
+    res.json(userInfo)
   }).catch((err) => {
-    next(createError(500, "Couldn't get user info: " + err.message));
-    return;
+    next(createError(500, "Couldn't get user info: " + err.message))
   })
-
-});
+})
 
 /*
  *********************
@@ -76,21 +76,22 @@ router.get('/:user_id', function (req, res, next) {
  */
 
 /* POST request to edit a user's profile */
-router.post('/:user_id/edit_profile', function(req, res, next) {
-  let uid = req.params.user_id;
-  let user = users.child(uid);
-  let edits = req.body.edits;
+router.post('/:userId/edit_profile', function (req, res, next) {
+  let uid = req.params.userId
+  let user = users.child(uid)
+  let edits = req.body.edits
 
   // Check that user supplied edits
-  if (edits == null)
-    next(createError(400, "Edits are null"));
+  if (edits == null) {
+    next(createError(400, 'Edits are null'))
+  }
 
   // Convert edits to JSON
   try {
-    edits = JSON.parse(edits);
+    edits = JSON.parse(edits)
   } catch (e) {
-    next(createError(400, "Malformed request: Edits not in JSON format"));
-    return;
+    next(createError(400, 'Malformed request: Edits not in JSON format'))
+    return
   }
 
   const fields = [ // don't let users change their email
@@ -99,67 +100,64 @@ router.post('/:user_id/edit_profile', function(req, res, next) {
     'propic',
     'isServiceAccount',
     'school',
-    'location',
-  ];
+    'location'
+  ]
 
   // Validate input
-  var valid_format = function(key, value) {
+  var validFormat = function (key, value) {
     switch (key) {
-      case 'password':         return utils.isValidPassword(value);
-      case 'displayName':      return utils.isValidDisplayName(value);
-      case 'propic':           return utils.isString(value);
-      case 'isServiceAccount': return utils.isBoolean(value);
-      case 'school':           return utils.isValidSchool(value);
-      case 'location':         return utils.isValidLocation(value);
-      default:                 return false;
+      case 'password': return utils.isValidPassword(value)
+      case 'displayName': return utils.isValidDisplayName(value)
+      case 'propic': return utils.isString(value)
+      case 'isServiceAccount': return utils.isBoolean(value)
+      case 'school': return utils.isValidSchool(value)
+      case 'location': return utils.isValidLocation(value)
+      default: return false
     }
   }
 
   // Check that all the proposed edits are "good", i.e. non empty and formatted correctly
   for (const field of fields) {
-    if (edits[field] !== undefined && !valid_format(field, edits[field])) {
-      next(createError(400, "Edit error: Bad format for '" + field + "'"));
-      return;
+    if (edits[field] !== undefined && !validFormat(field, edits[field])) {
+      next(createError(400, "Edit error: Bad format for '" + field + "'"))
+      return
     }
   }
 
-  var firebase_auth_promise = admin.auth().getUser(uid);
-  var firebase_db_promise = user.once('value');
+  var firebaseAuthPromise = admin.auth().getUser(uid)
+  var firebaseDBPromise = user.once('value')
 
-  Promise.all([firebase_auth_promise, firebase_db_promise]).then((values) => {
-    let [record, snap] = values;
+  Promise.all([firebaseAuthPromise, firebaseDBPromise]).then((values) => {
+    let [record, snap] = values
 
     // Verify that the user exists in Firebase DB
     if (snap.val() === null) {
-      next(createError(500, "User '" + user_id + "'  missing in database"));
-      return;
+      next(createError(500, "User '" + uid + "'  missing in database"))
+      return
     }
 
     // Update on Firebase Auth
     admin.auth().updateUser(uid, edits).then((userRecord) => {
-      console.log('Updated user info in Firebase Auth: ' + userRecord.toJSON());
+      console.log('Updated user info in Firebase Auth: ' + userRecord.toJSON())
     }).catch((err) => {
-      next(createError(500, "Couldn't update user in Firebase Auth:" + err.message));
-      return;
+      next(createError(500, "Couldn't update user in Firebase Auth:" + err.message))
+      // TODO: figure out how to stop code execution after this
     })
 
     // Update custom fields in Firebase Database
     user.update(edits, (err) => {
       if (err) {
-        console.log(err);
-        next(createError(500, "Couldn't update user info: " + err));
-        return;
+        console.log(err)
+        next(createError(500, "Couldn't update user info: " + err))
+        // TODO: figure out how to stop code execution after this
       } else {
-        console.log('Updated user info in Firebase Database.');
-        res.send('User info updated successfully.');
+        console.log('Updated user info in Firebase Database.')
+        res.send('User info updated successfully.')
       }
-    });
-
+    })
   }).catch((err) => {
-    next(createError(500, "User doesn't exist: " + err.message));
-    return;
-  });
+    next(createError(500, "User doesn't exist: " + err.message))
+  })
+})
 
-});
-
-module.exports = router;
+module.exports = router
