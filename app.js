@@ -10,6 +10,7 @@ var indexRouter = require('./routes/index')
 var usersRouter = require('./routes/users')
 var offersRouter = require('./routes/offers')
 var amazons3Router = require('./routes/amazons3')
+var stripeRouter = require('./routes/stripe')
 
 var app = express()
 var admin = require('./routes/auth')
@@ -17,7 +18,7 @@ var admin = require('./routes/auth')
 require('./transfers')
 
 // view engine setup
-app.set('views', path.join(__dirname, 'views'));
+app.set('views', path.join(__dirname, 'views'))
 app.set('view engine', 'ejs')
 
 app.use(logger('dev'))
@@ -46,7 +47,9 @@ app.use(function (req, res, next) {
     if (req.app.get('env') === 'development') {
       req.auth = {
         'userToken': 'DEVELOPMENT',
-        'uid': '4bQi9p22VDaTFoR0ZnKSI7Oo8ie2' // padl-test-account1@mit.edu
+        'uid': 'gGqipoI2lqQZBUHQfMZMEuL5Muh1'
+        // padl-test-account1@mit.edu 4bQi9p22VDaTFoR0ZnKSI7Oo8ie2
+        // test@mit.edu gGqipoI2lqQZBUHQfMZMEuL5Muh1
       }
       next()
     } else {
@@ -60,6 +63,7 @@ app.use('/', indexRouter)
 app.use('/users', usersRouter)
 app.use('/offers', offersRouter)
 app.use('/amazons3', amazons3Router)
+app.use('/stripe', stripeRouter)
 
 /* Catch 404s and forward to error handler */
 app.use(function (req, res, next) {

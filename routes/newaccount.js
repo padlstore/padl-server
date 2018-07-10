@@ -5,7 +5,6 @@
  *
  */
 
-var createError = require('http-errors')
 var express = require('express')
 var router = express.Router()
 
@@ -15,8 +14,11 @@ var utils = require('./utils')
 var db = admin.database()
 var users = db.ref('users')
 
+var stripeConfig = require('../secrets/stripe_config')
+var stripe = require('stripe')(stripeConfig.secretKey)
+
 /* POST request to create a new account. */
-router.post('/', function (req, res, next) {
+router.post('/', async (req, res, next) => {
   let email = req.body.email
   let emailVerified = false
   let disabled = false
@@ -28,6 +30,7 @@ router.post('/', function (req, res, next) {
   let school = 'MIT'
   let location = req.body.location
   let offers = {'sentinel': ''}
+  let purchases = {'sentinel': ''}
   let wishes = {'sentinel': ''}
 
   // Check that all the proposed edits are "good", i.e. non empty and formatted correctly
@@ -46,46 +49,75 @@ router.post('/', function (req, res, next) {
 
   // Create the user settings that are passed into Firebase Auth (createUser)
   // Firebase Database (set)
-  let user_settings_firebase_auth = {
-    'email': email,
-    'emailVerified': emailVerified,
-    'password': password,
-    'disabled': disabled,
-    'displayName': displayName
+  let userSettingsFirebaseAuth = {
+    email: email,
+    emailVerified: emailVerified,
+    password: password,
+    disabled: disabled,
+    displayName: displayName
   }
 
-  let user_settings_firebase_db = {
-    'email': email,
-    'isServiceAccount': isServiceAccount,
-    'propic': propic,
-    'location': location,
-    'school': school,
-    'offers': offers,
-    'ratings': ratings,
-    'wishes': wishes
+  let customer
+
+  try {
+    customer = await new Promise((resolve, reject) => {
+      stripe.customers.create({
+        description: `Customer for ${email}`,
+        email: email
+      }, (err, cust) => {
+        if (err) {
+          reject(err)
+        } else {
+          resolve(cust)
+        }
+      })
+    })
+  } catch (error) {
+    res.status(500)
+    res.json({
+      success: false,
+      message: `Couldn't create stripe account: ${error.message}`
+    })
+    res.end()
   }
 
-  admin.auth().createUser(user_settings_firebase_auth).then((userRecord) => {
+  let userSettingsFirebaseDB = {
+    email: email,
+    isServiceAccount: isServiceAccount,
+    propic: propic,
+    location: location,
+    school: school,
+    offers: offers,
+    ratings: ratings,
+    wishes: wishes,
+    customerId: customer.id,
+    purchases: purchases
+  }
+
+  admin.auth().createUser(userSettingsFirebaseAuth).then((userRecord) => {
     let user = users.child(userRecord.uid)
-    user.set(user_settings_firebase_db, (err) => {
+    user.set(userSettingsFirebaseDB, (err) => {
       if (err) { // if an error actually occured
         res.status(500)
         res.json({
-          'success': false,
-          'message': "Couldn't create new account in Firebase DB"
+          success: false,
+          message: "Couldn't create new account in Firebase DB"
         })
       } else {
         console.log('Creating new account with email: ' + email)
         res.status(200)
-        res.json({'success': true})
+        res.json({
+          success: true
+        })
       }
     })
   }).catch((err) => {
     res.status(500)
     res.json({
-      'success': false,
-      'message': "Couldn't create new account in Firebase Auth: " + err.message
+      success: false,
+      message: "Couldn't create new account in Firebase Auth: " + err.message
     })
+    res.end()
   })
 })
 
