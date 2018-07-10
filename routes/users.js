@@ -6,14 +6,14 @@
  *
  */
 
-var createError = require('http-errors');
-var express = require('express');
-var router = express.Router();
+var createError = require('http-errors')
+var express = require('express')
+var router = express.Router()
 
-var admin = require('./auth');
+var admin = require('./auth')
 
-var db = admin.database();
-var users = db.ref('users');
+var db = admin.database()
+var users = db.ref('users')
 
 /*
  ********************
@@ -22,24 +22,23 @@ var users = db.ref('users');
  */
 
 /* GET request for all users */
-router.get('/', function(req, res, next) {
+router.get('/', function (req, res, next) {
   users.once('value').then((snap) => {
     // Verify that the 'users' dictionary exists
-    if (snap.val() === null)
-      throw new Error("'Users' table/key missing in database");
+    if (snap.val() === null) {
+      throw new Error("'Users' table/key missing in database")
+    }
 
     // Send information about the user
-    let usersInfo = snap.val();
-    res.json(usersInfo);
-
+    let usersInfo = snap.val()
+    res.json(usersInfo)
   }).catch((err) => {
     next(createError(500, "Couldn't get all users: " + err.message));
-    return;
-  });
-});
+  })
+})
 
 /* GET request for a specific user */
-router.get('/:user_id', function(req, res, next) {
+router.get('/:user_id', function (req, res, next) {
   let uid = req.params.user_id;
   let user = users.child(uid);
 

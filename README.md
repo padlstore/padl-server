@@ -7,8 +7,6 @@
 DEBUG=server npm start
 ```
 
-
-
 ## User Accounts
 ```
 Email: mattfeng4@mit.edu
@@ -249,3 +247,7 @@ curl https://api.stripe.com/v1/charges \
    -d description="Example charge" \
    -d source=tok_bypassPending
 ```
+
+## TODO
+1. Store purchased offers in the users reference.
+2. 
