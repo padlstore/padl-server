@@ -35,7 +35,7 @@ router.get('/', function (req, res, next) {
     let usersInfo = snap.val()
     res.json(usersInfo)
   }).catch((err) => {
-    next(createError(500, "Couldn't get all users: " + err.message));
+    next(createError(500, "Couldn't get all users: " + err.message))
   })
 })
 
@@ -57,7 +57,7 @@ router.get('/:userId', function (req, res, next) {
     }
 
     // Augment and send information about the user
-    let userInfo = snap.val();
+    let userInfo = snap.val()
     userInfo.displayName = record.displayName
     userInfo.emailVerified = record.emailVerified
     userInfo.disabled = record.disabled
