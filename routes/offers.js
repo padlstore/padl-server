@@ -42,6 +42,58 @@ router.get('/', function (req, res, next) {
   })
 })
 
+router.post('/offers', async (req, res, next) => {
+  if (!req.body.offerList) {
+    res.status(400)
+    res.send({
+      success: false,
+      message: 'No offer list provided.'
+    })
+    res.end()
+  }
+
+  let offerList
+
+  try {
+    offerList = JSON.parse(req.body.offerList)
+  } catch (err) {
+    res.status(400)
+    res.send({
+      success: false,
+      message: 'No offer list provided.'
+    })
+    res.end()
+  }
+
+  let offersSnap
+
+  try {
+    offersSnap = await offers.once('value')
+  } catch (err) {
+    console.log("Error: Couldn't retrieve bulk offers.")
+    res.status(400)
+    res.send({
+      success: false,
+      message: "Couldn't retrieve offers for some reason."
+    })
+    res.end()
+  }
+
+  let offersInfo = offersSnap.val()
+
+  let ret = {}
+
+  for (let key in offerList) {
+    ret[key] = offersInfo[key]
+  }
+
+  res.send({
+    success: true,
+    data: ret,
+    message: 'Offers retrieved successfully.'
+  })
+})
+
 /* Get info about a specific offer. */
 router.get('/:offer_id', function (req, res, next) {
   let offerId = req.params.offer_id
@@ -364,10 +416,12 @@ router.post('/:offer_id/buyer_sign_contract', function (req, res, next) {
       if (err) {
         next(createError(500, 'Could not sign transaction'))
       } else {
+        res.status(200)
         res.json({
           'success': true,
           'message': 'Transaction was successfully signed (buyer)'
         })
+        res.end()
       }
     })
   }).catch((err) => {
