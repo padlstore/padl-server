@@ -5,11 +5,9 @@
  *
  */
 
-var createError = require('http-errors')
 var admin = require('./auth')
 var db = admin.database()
 var users = db.ref('users')
-var utils = require('./utils')
 
 var stripeConfig = require('../secrets/stripe_config')
 var stripe = require('stripe')(stripeConfig.secretKey)
@@ -26,7 +24,7 @@ router.post('/complete_oauth', async (req, res) => {
   const userId = req.auth.uid
   const grantType = 'authorization_code'
 
-  let stripeResp = await rp('https://connect.strip.com/oauth/token', {
+  let stripeResp = await rp('https://connect.stripe.com/oauth/token', {
     client_secret: clientSecret,
     code: authCode,
     grant_type: grantType

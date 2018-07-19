@@ -265,6 +265,7 @@ router.post('/:offer_id/purchase', function (req, res, next) {
   let offerId = req.params.offer_id
   let offerRef = offers.child(offerId)
   let buyerUID = req.auth.uid
+  console.log('potential buyer:', buyerUID)
 
   // Lock the offer
   let offer
@@ -278,12 +279,10 @@ router.post('/:offer_id/purchase', function (req, res, next) {
       throw new Error('Offer has already been sold.')
     }
 
-    if (offer.lockedTo !== '') {
+    if (offer.lockedTo !== '' && offer.lockedTo !== buyerUID) { // In case something goes wrong during charge, buyer can still try to buy
       throw new Error('Offer has already been locked to another user.')
     }
-  }).catch((err) => {
-    next(createError(500, 'Error in locking offer: ' + err.message))
-  }).then(() => {
+
     let updates = {
       'lockedTo': buyerUID
     }
@@ -296,16 +295,16 @@ router.post('/:offer_id/purchase', function (req, res, next) {
         'name': offer.name,
         'offerId': offer.offerId
       })
-    }).catch((err) => {
-      next(createError(500, 'Could not update lock on offer: ' + err.message))
     })
+  }).catch((err) => {
+    next(createError(500, 'Error in locking offer: ' + err.message))
   })
 })
 
 /* Charge the buyer's card for purchasing an offer */
 router.post('/:offer_id/charge', function (req, res, next) {
   let buyerUID = req.auth.uid
-  let source = req.body.source
+  let source = req.body.source // TODO: refactor for this to say token, not source -- they are different in Stripe!
   let offerId = req.params.offer_id
 
   let offerRef = offers.child(offerId)
@@ -336,6 +335,8 @@ router.post('/:offer_id/charge', function (req, res, next) {
                              offer.offerId
     let chargeAmount = offer.price
 
+    console.log('Source:', source)
+
     // Create the charge
     stripe.charges.create({
       amount: chargeAmount,
@@ -345,7 +346,13 @@ router.post('/:offer_id/charge', function (req, res, next) {
     }, (err, charge) => {
       // If charge couldn't be created, tell why
       if (err) {
-        next(createError(500, 'Charge error: ' + err.message))
+        console.log(`ERROR: Charge error: ${err}`)
+        res.status(500)
+        res.json({
+          success: false,
+          message: 'Failed to charge the card given.'
+        })
+        res.end()
         return
       }
 

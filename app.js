@@ -33,7 +33,12 @@ app.use(fileUpload({ // allow for file uploads
 app.use(function (req, res, next) {
   res.header('Access-Control-Allow-Origin', '*')
   res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept')
-  next()
+
+  if (req.method === 'OPTIONS') {
+    res.sendStatus(200)
+  } else {
+    next()
+  }
 })
 
 /* Routes that DO NOT require authentication */
@@ -41,15 +46,18 @@ app.use('/newaccount', newAccountRouter)
 
 /* Authentication middleware */
 app.use(function (req, res, next) {
-  let token = (req.body.token == null) ? '' : req.body.token
+  let token = (req.body.userToken == null) ? '' : req.body.userToken
+  console.log('Auth token proposed:', token)
 
   admin.auth().verifyIdToken(token).then((decoded) => {
     req.auth = {
       'userToken': decoded,
       'uid': decoded.uid
     }
+    console.log(`Auth success: ${decoded.uid}`)
     next()
   }).catch((_) => {
+    console.log('Auth failed.')
     if (req.app.get('env') === 'development') {
       req.auth = {
         'userToken': 'DEVELOPMENT',
